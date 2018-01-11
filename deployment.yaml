@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    draft: {{ default "draft-app" .Values.draft }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        draft: {{ default "draft-app" .Values.draft }}
+        app: {{ template "fullname" . }}
+    spec:
+      containers:
+      - name: git-sync
+        image: k8s.gcr.io/git-sync-amd64:v2.0.5
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: go-pv-storage
+          mountPath: /git
+        env:
+        - name: GIT_SYNC_REPO
+          value: https://github.com/greglanthier/test.git
+        - name: GIT_SYNC_DEST
+          value: git
+        - name: GIT_SYNC_WAIT
+          value: "20"
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.internalPort }}
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+        volumeMounts:
+        - name: go-pv-storage
+          mountPath: /data
+      volumes:
+      - name: go-pv-storage
+        persistentVolumeClaim:
+          claimName: poc-volume-1-claim
+
