@@ -3,6 +3,7 @@ apiVersion: v1
 metadata:
   name: poc-volume-1-claim
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
