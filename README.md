@@ -1,0 +1,1 @@
+# minikube-persistent-volume
